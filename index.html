@@ -374,7 +374,7 @@
       // In the displayMovies function, update the card creation:
 card.addEventListener('click', () => {
   const type = movie.media_type === 'tv' ? 'tv' : 'movie';
-  window.location.href = `movie-detail.html?id=${movie.id}&type=${type}`;
+  window.location.href = `movie?id=${movie.id}&type=${type}`;
 });
       
       moviesContainer.appendChild(card);

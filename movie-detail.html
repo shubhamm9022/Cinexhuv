@@ -59,7 +59,10 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
+      transition: opacity 0.5s;
+      opacity: 0;
     }
+    .poster img.loaded { opacity: 1; }
 
     .movie-details {
       width: 100%;
@@ -151,7 +154,7 @@
       opacity: 0.85;
     }
 
-    /* Similar movies */
+    /* Similar movies - matching index page exactly */
     .similar-section {
       margin-top: 50px;
       padding: 0 20px 30px;
@@ -169,93 +172,111 @@
 
     .similar-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
       gap: 20px;
-      width: 100%;
+      justify-items: center;
     }
 
-    /* Movie Card Styles */
     .movie-card {
-      background: #1a1a1a;
-      border-radius: 12px;
-      overflow: hidden;
-      transition: transform 0.3s;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.7);
+      position: relative;
       width: 100%;
+      max-width: 180px;
+      background: #1a1a1a;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.8);
+      transition: transform 0.4s, box-shadow 0.4s;
+      cursor: pointer;
     }
 
     .movie-card:hover {
       transform: scale(1.05);
+      box-shadow: 0 10px 25px rgba(255, 255, 255, 0.2);
     }
 
     .poster-wrapper {
       position: relative;
       width: 100%;
-      padding-top: 150%; /* Aspect ratio for poster */
+      height: 270px;
+      background: #2a2a2a;
+      overflow: hidden;
     }
 
     .movie-poster {
-      position: absolute;
-      top: 0;
-      left: 0;
       width: 100%;
       height: 100%;
       object-fit: cover;
-      display: block;
+      transition: opacity 0.5s;
+      opacity: 0;
     }
+
+    .movie-poster.loaded { opacity: 1; }
 
     .rating-star {
       position: absolute;
-      top: 8px;
+      bottom: 8px;
       left: 8px;
-      background: rgba(0,0,0,0.7);
-      padding: 3px 7px;
-      border-radius: 20px;
-      font-size: 12px;
       display: flex;
       align-items: center;
-      gap: 3px;
+      gap: 4px;
+      padding: 2px 6px;
+      border-radius: 20px;
+      background: rgba(0, 0, 0, 0.7);
+      font-size: 11px;
       font-weight: 600;
-      z-index: 1;
+      color: #fff;
+      backdrop-filter: blur(4px);
     }
+
+    .rating-star img { width: 14px; height: 14px; }
 
     .movie-info {
-      padding: 12px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-height: 60px;
     }
 
-    .movie-info .title {
-      font-size: 14px;
-      font-weight: 600;
-      margin-bottom: 6px;
-      white-space: nowrap;
+    .title {
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.3em;
+      max-height: 2.6em;
       overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
       text-overflow: ellipsis;
     }
 
-    .movie-info .year {
-      font-size: 12px;
-      color: #aaa;
-      margin-bottom: 8px;
-    }
-
-    .movie-info .tags {
+    .tags {
       display: flex;
       flex-wrap: wrap;
-      gap: 4px;
+      gap: 5px;
+      font-size: 11px;
+      opacity: 0.9;
     }
 
-    .movie-info .tag {
-      background: #2a2a2a;
-      font-size: 10px;
+    .tag {
       padding: 2px 6px;
-      border-radius: 999px;
-      font-weight: 500;
+      border-radius: 5px;
+      background: #333;
     }
 
     .tag.hd { background: #4CAF50; }
     .tag.cam { background: #FF5722; }
     .tag.fhd { background: #2196F3; }
     .tag._4k { background: #9C27B0; }
+
+    @media (max-width: 600px) {
+      .similar-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .movie-container {
+        padding: 20px 15px;
+      }
+    }
   </style>
 </head>
 
@@ -275,7 +296,7 @@
 
     <div class="info-tags" id="genreTags"></div>
 
-    <a href="#" class="btn" id="watchBtn">WATCH MOVIE</a>
+    <a href="#" class="btn" id="watchBtn">WATCH NOW</a>
 
     <div class="synopsis" id="synopsisSection">
       <h2 class="synopsis-title">Synopsis</h2>
@@ -286,62 +307,85 @@
 
 <!-- Similar movies -->
 <div class="similar-section">
-  <h2 class="similar-title">Similar Movies</h2>
+  <h2 class="similar-title">Similar Content</h2>
   <div class="similar-grid" id="similarMovies"></div>
 </div>
 
 <script>
 const urlParams = new URLSearchParams(window.location.search);
-const movieId = urlParams.get('id');
+const mediaId = urlParams.get('id');
+const mediaType = urlParams.get('type') || 'movie'; // Default to movie if not specified
 const apiKey = 'c4064977d8835c7a9e758c7ccf25d0fa';
-const apiUrl = `https://api.themoviedb.org/3/movie/${movieId}?api_key=${apiKey}&language=en-US`;
-const similarUrl = `https://api.themoviedb.org/3/movie/${movieId}/similar?api_key=${apiKey}&language=en-US&page=1`;
 
-// Listen for URL changes
-window.addEventListener('popstate', () => {
-  const newMovieId = new URLSearchParams(window.location.search).get('id');
-  if (newMovieId && newMovieId !== movieId) {
-    window.location.reload();
-  }
-});
+// Set API endpoints based on media type
+const detailsUrl = mediaType === 'tv'
+  ? `https://api.themoviedb.org/3/tv/${mediaId}?api_key=${apiKey}&language=en-US`
+  : `https://api.themoviedb.org/3/movie/${mediaId}?api_key=${apiKey}&language=en-US`;
 
-async function loadMovie() {
+const similarUrl = mediaType === 'tv'
+  ? `https://api.themoviedb.org/3/tv/${mediaId}/similar?api_key=${apiKey}&language=en-US&page=1`
+  : `https://api.themoviedb.org/3/movie/${mediaId}/similar?api_key=${apiKey}&language=en-US&page=1`;
+
+// Quality options matching index page
+const qualityOptions = [
+  { text: 'HD', class: 'hd' },
+  { text: 'CAM', class: 'cam' },
+  { text: 'FHD', class: 'fhd' },
+  { text: '4K', class: '_4k' }
+];
+
+// Star image URL matching index page
+const starImageUrl = 'https://i.postimg.cc/ZqbHmT4p/1000133487-removebg-preview-1.png';
+
+async function loadMediaDetails() {
   try {
-    const res = await fetch(apiUrl);
-    if (!res.ok) throw new Error('Failed to fetch movie');
-    const movie = await res.json();
+    const response = await fetch(detailsUrl);
+    const media = await response.json();
 
     // Set banner
     const banner = document.getElementById('banner');
-    if (movie.backdrop_path) {
-      banner.style.backgroundImage = `url(https://image.tmdb.org/t/p/original${movie.backdrop_path})`;
+    if (media.backdrop_path) {
+      banner.style.backgroundImage = `url(https://image.tmdb.org/t/p/original${media.backdrop_path})`;
     } else {
       banner.style.backgroundImage = 'linear-gradient(to right, #1a1a1a, #2a2a2a)';
     }
 
     // Set poster
     const poster = document.getElementById('poster');
-    poster.src = movie.poster_path 
-      ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+    poster.src = media.poster_path 
+      ? `https://image.tmdb.org/t/p/w500${media.poster_path}`
       : 'https://via.placeholder.com/220x330?text=No+Poster';
-    poster.alt = `${movie.title} poster`;
+    poster.alt = mediaType === 'tv' ? media.name : media.title;
+    poster.onload = function() {
+      this.classList.add('loaded');
+    };
 
-    document.getElementById('title').textContent = movie.title;
+    document.getElementById('title').textContent = mediaType === 'tv' ? media.name : media.title;
 
     // Main tags
     const mainTags = document.getElementById('mainTags');
     mainTags.innerHTML = `
-      <div class="tag movie-type">Movie</div>
-      <div class="tag"><i class="bi bi-calendar-event"></i> ${movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A'}</div>
-      <div class="tag"><i class="bi bi-clock"></i> ${movie.runtime ? `${Math.floor(movie.runtime / 60)}h ${movie.runtime % 60}m` : 'N/A'}</div>
-      <div class="rating-tag"><i class="bi bi-star-fill"></i> ${movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A'}</div>
+      <div class="tag movie-type">${mediaType === 'tv' ? 'TV Series' : 'Movie'}</div>
+      <div class="tag"><i class="bi bi-calendar-event"></i> ${
+        mediaType === 'tv'
+          ? media.first_air_date ? new Date(media.first_air_date).getFullYear() : 'N/A'
+          : media.release_date ? new Date(media.release_date).getFullYear() : 'N/A'
+      }</div>
+      <div class="tag"><i class="bi ${
+        mediaType === 'tv' ? 'bi-collection' : 'bi-clock'
+      }"></i> ${
+        mediaType === 'tv'
+          ? `${media.number_of_seasons} season${media.number_of_seasons !== 1 ? 's' : ''}`
+          : media.runtime ? `${Math.floor(media.runtime / 60)}h ${media.runtime % 60}m` : 'N/A'
+      }</div>
+      <div class="rating-tag"><i class="bi bi-star-fill"></i> ${media.vote_average ? media.vote_average.toFixed(1) : 'N/A'}</div>
     `;
 
     // Genre tags
     const genreTags = document.getElementById('genreTags');
     genreTags.innerHTML = '';
-    if (movie.genres && movie.genres.length) {
-      movie.genres.forEach(genre => {
+    if (media.genres && media.genres.length) {
+      media.genres.forEach(genre => {
         const tag = document.createElement('div');
         tag.className = 'tag';
         tag.textContent = genre.name;
@@ -350,88 +394,92 @@ async function loadMovie() {
     }
 
     // Synopsis
-    document.getElementById('synopsisText').textContent = movie.overview || "No synopsis available.";
+    document.getElementById('synopsisText').textContent = media.overview || "No synopsis available.";
 
     // Watch button
-    document.getElementById('watchBtn').href = `https://www.themoviedb.org/movie/${movie.id}`;
-    
+    document.getElementById('watchBtn').href = mediaType === 'tv'
+      ? `https://www.themoviedb.org/tv/${media.id}`
+      : `https://www.themoviedb.org/movie/${media.id}`;
+
   } catch (error) {
-    console.error('Error loading movie:', error);
-    document.getElementById('title').textContent = 'Error loading movie';
-    document.getElementById('synopsisText').textContent = 'Failed to load movie details. Please try again later.';
+    console.error('Error loading media details:', error);
+    document.getElementById('title').textContent = 'Error loading content';
+    document.getElementById('synopsisText').textContent = 'Failed to load details. Please try again later.';
   }
 }
 
-async function loadSimilarMovies() {
+async function loadSimilarMedia() {
   try {
-    const res = await fetch(similarUrl);
-    if (!res.ok) throw new Error('Failed to fetch similar movies');
-    const data = await res.json();
-    const similarMovies = document.getElementById('similarMovies');
-    similarMovies.innerHTML = '';
+    const response = await fetch(similarUrl);
+    const data = await response.json();
+    const similarContainer = document.getElementById('similarMovies');
+    similarContainer.innerHTML = '';
 
     if (!data.results || data.results.length === 0) {
-      similarMovies.innerHTML = '<p>No similar movies found</p>';
+      similarContainer.innerHTML = '<p style="color: white; text-align: center; grid-column: 1/-1;">No similar content found</p>';
       return;
     }
 
-    data.results.slice(0, 6).forEach(movie => {
-      const posterPath = movie.poster_path 
-        ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` 
-        : 'https://via.placeholder.com/150x225?text=No+Image';
+    data.results.slice(0, 6).forEach(item => {
+      const posterPath = item.poster_path 
+        ? `https://image.tmdb.org/t/p/w500${item.poster_path}` 
+        : 'https://via.placeholder.com/180x270?text=No+Image';
       
-      const title = movie.title || 'No Title';
-      const releaseYear = movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A';
-      const qualityTag = getRandomQualityTag();
-
-      const movieCard = document.createElement('div');
-      movieCard.className = 'movie-card';
-      movieCard.innerHTML = `
-        <a href="movie.html?id=${movie.id}" style="text-decoration: none; color: inherit;">
+      const title = mediaType === 'tv' ? item.name : item.title;
+      const releaseDate = mediaType === 'tv' ? item.first_air_date : item.release_date;
+      const formattedDate = formatDate(releaseDate);
+      const type = mediaType === 'tv' ? 'Series' : 'Movie';
+      const rating = item.vote_average ? item.vote_average.toFixed(1) : 'N/A';
+      const randomQuality = qualityOptions[Math.floor(Math.random() * qualityOptions.length)];
+      
+      const card = document.createElement('div');
+      card.className = 'movie-card';
+      card.innerHTML = `
+        <a href="movie-detail.html?id=${item.id}&type=${mediaType}" style="text-decoration: none; color: inherit;">
           <div class="poster-wrapper">
-            <img src="${posterPath}" class="movie-poster" alt="${title}" loading="lazy">
+            <img class="movie-poster" src="${posterPath}" alt="${title}" onload="this.classList.add('loaded')">
             <div class="rating-star">
-              <i class="bi bi-star-fill"></i> ${movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A'}
+              <img src="${starImageUrl}" alt="star">
+              ${rating}
             </div>
           </div>
           <div class="movie-info">
             <div class="title">${title}</div>
-            <div class="year">${releaseYear}</div>
             <div class="tags">
-              <div class="tag ${qualityTag.class}">${qualityTag.text}</div>
+              <div class="tag">${formattedDate}</div>
+              <div class="tag ${randomQuality.class}">${randomQuality.text}</div>
+              <div class="tag">${type}</div>
             </div>
           </div>
         </a>
       `;
-      similarMovies.appendChild(movieCard);
+      similarContainer.appendChild(card);
     });
 
   } catch (error) {
-    console.error('Error loading similar movies:', error);
-    document.getElementById('similarMovies').innerHTML = '<p>Failed to load similar movies</p>';
+    console.error('Error loading similar media:', error);
+    similarContainer.innerHTML = '<p style="color: white; text-align: center; grid-column: 1/-1;">Failed to load similar content</p>';
   }
 }
 
-function getRandomQualityTag() {
-  const qualityOptions = [
-    { text: 'HD', class: 'hd' },
-    { text: 'CAM', class: 'cam' },
-    { text: 'FHD', class: 'fhd' },
-    { text: '4K', class: '_4k' }
-  ];
-  return qualityOptions[Math.floor(Math.random() * qualityOptions.length)];
+// Helper function to format date (matches index page)
+function formatDate(dateString) {
+  if (!dateString) return 'Unknown';
+  const date = new Date(dateString);
+  const options = { month: 'short', day: '2-digit', year: '2-digit' };
+  return date.toLocaleDateString('en-US', options);
 }
 
-// Load data when page loads
+// Load content when page loads
 document.addEventListener('DOMContentLoaded', () => {
-  if (!movieId) {
-    document.getElementById('title').textContent = 'No movie selected';
-    document.getElementById('synopsisText').textContent = 'Please go back and select a movie.';
+  if (!mediaId) {
+    document.getElementById('title').textContent = 'No content selected';
+    document.getElementById('synopsisText').textContent = 'Please go back and select a movie or TV show.';
     return;
   }
   
-  loadMovie();
-  loadSimilarMovies();
+  loadMediaDetails();
+  loadSimilarMedia();
 });
 </script>
 </body>

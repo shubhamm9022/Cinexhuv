@@ -153,6 +153,7 @@
       transition: transform 0.4s, box-shadow 0.4s;
       display: flex;
       flex-direction: column;
+      cursor: pointer;
     }
     .movie-card:hover {
       transform: scale(1.05);
@@ -182,7 +183,7 @@
       gap: 4px;
       padding: 2px 6px;
       border-radius: 20px;
-      background: transparent;
+      background: rgba(0, 0, 0, 0.7);
       font-size: 11px;
       font-weight: 600;
       color: #fff;
@@ -285,114 +286,76 @@
     hamburger.classList.toggle('active');
     menu.classList.toggle('active');
   });
+
   const searchIcon = document.getElementById('search-icon');
   const searchBox = document.getElementById('search-box');
   const searchInput = searchBox.querySelector('input');
+  
   searchIcon.addEventListener('click', (e) => {
     e.stopPropagation();
     searchBox.classList.toggle('active');
     searchInput.focus();
   });
+
   document.addEventListener('click', (e) => {
     if (!searchBox.contains(e.target) && !searchIcon.contains(e.target)) {
       searchBox.classList.remove('active');
     }
   });
+
   const apiKey = 'c4064977d8835c7a9e758c7ccf25d0fa';
   const moviesContainer = document.getElementById('movies-container');
   const loader = document.getElementById('loader');
+  
   const qualityOptions = [
     { text: 'HD', class: 'hd' },
     { text: 'CAM', class: 'cam' },
     { text: 'FHD', class: 'fhd' },
     { text: '4K', class: '_4k' }
   ];
+  
   const starImageUrl = 'https://i.postimg.cc/ZqbHmT4p/1000133487-removebg-preview-1.png';
   let allMovies = [];
+
   async function fetchMovies() {
-    const response = await fetch(https://api.themoviedb.org/3/trending/all/day?api_key=${apiKey});
-    const data = await response.json();
-    allMovies = data.results;
-    displayMovies(allMovies);
-    loader.style.display = 'none';
+    try {
+      const response = await fetch(`https://api.themoviedb.org/3/trending/all/day?api_key=${apiKey}`);
+      const data = await response.json();
+      allMovies = data.results;
+      displayMovies(allMovies);
+    } catch (error) {
+      console.error('Error fetching movies:', error);
+      moviesContainer.innerHTML = '<p style="color: white; grid-column: 1/-1; text-align: center;">Failed to load movies. Please try again later.</p>';
+    } finally {
+      loader.style.display = 'none';
+    }
   }
-     function displayMovies(movies) {
-     moviesContainer.innerHTML = '';
-     movies.forEach(movie => {
-       const posterPath = movie.poster_path ? https://image.tmdb.org/t/p/w500${movie.poster_path} : 'https://via.placeholder.com/180x270?text=No+Image';
-       const title = movie.title || movie.name || 'No Title';
-       const releaseDate = movie.release_date || movie.first_air_date || '';
-       const formattedDate = formatDate(releaseDate);
-       const type = movie.media_type === 'movie' ? 'Movie' : 'Series';
-       const rating = movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A';
-       const randomQuality = qualityOptions[Math.floor(Math.random() * qualityOptions.length)];
-       const card = document.createElement('div');
-       card.className = 'movie-card';
-       card.innerHTML = 
-         <div class="poster-wrapper">
-           <img class="movie-poster" src="${posterPath}" alt="${title}">
-           <div class="rating-star">
-             <img src="${starImageUrl}" alt="star">
-             ${rating}
-           </div>
-         </div>
-         <div class="movie-info">
-           <div class="title">${title}</div>
-           <div class="tags">
-             <div class="tag">${formattedDate}</div>
-             <div class="tag ${randomQuality.class}">${randomQuality.text}</div>
-             <div class="tag">${type}</div>
-           </div>
-         </div>
-       ;
-       card.addEventListener('click', () => {
-         window.location.href = movie-detail.html?id=${movie.id};
-       });
-       moviesContainer.appendChild(card);
-       const poster = card.querySelector('.movie-poster');
-       poster.onload = () => {
-         poster.classList.add('loaded');
-       };
-     });
-   }
-   https://image.tmdb.org/t/p/w500${movie.poster_path}
-         <div class="poster-wrapper">
-           <img class="movie-poster" src="${posterPath}" alt="${title}">
-           <div class="rating-star">
-             <img src="${starImageUrl}" alt="star">
-             ${rating}
-           </div>
-         </div>
-         <div class="movie-info">
-           <div class="title">${title}</div>
-           <div class="tags">
-             <div class="tag">${formattedDate}</div>
-             <div class="tag ${randomQuality.class}">${randomQuality.text}</div>
-             <div class="tag">${type}</div>
-           </div>
-         </div>
-       movie-detail.html?id=${movie.id}
-  function formatDate(dateString) {
-    if (!dateString) return 'Unknown';
-    const date = new Date(dateString);
-    const options = { month: 'short', day: '2-digit', year: '2-digit' };
-    return date.toLocaleDateString('en-US', options);
-  }
-  searchInput.addEventListener('input', () => {
-    const query = searchInput.value.toLowerCase();
-    const filteredMovies = allMovies.filter(movie => {
-      const title = (movie.title || movie.name || '').toLowerCase();
-      return title.includes(query);
-    });
-    displayMovies(filteredMovies);
-  });
-  fetchMovies();
-</script>
-</body>
-</html>
-https://api.themoviedb.org/3/trending/all/day?api_key=${apiKey}https://image.tmdb.org/t/p/w500${movie.poster_path}movie.html?id=${movie.id}
+
+  function displayMovies(movies) {
+    moviesContainer.innerHTML = '';
+    
+    if (movies.length === 0) {
+      moviesContainer.innerHTML = '<p style="color: white; grid-column: 1/-1; text-align: center;">No movies found matching your search.</p>';
+      return;
+    }
+    
+    movies.forEach(movie => {
+      const posterPath = movie.poster_path 
+        ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` 
+        : 'https://via.placeholder.com/180x270?text=No+Image';
+      
+      const title = movie.title || movie.name || 'No Title';
+      const releaseDate = movie.release_date || movie.first_air_date || '';
+      const formattedDate = formatDate(releaseDate);
+      const type = movie.media_type === 'movie' ? 'Movie' : 'Series';
+      const rating = movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A';
+      const randomQuality = qualityOptions[Math.floor(Math.random() * qualityOptions.length)];
+      
+      const card = document.createElement('div');
+      card.className = 'movie-card';
+      card.innerHTML = `
         <div class="poster-wrapper">
-          <img class="movie-poster" src="${posterPath}" alt="${title}">
+          <img class="movie-poster" src="${posterPath}" alt="${title}" onload="this.classList.add('loaded')">
           <div class="rating-star">
             <img src="${starImageUrl}" alt="star">
             ${rating}
@@ -406,4 +369,34 @@ https://api.themoviedb.org/3/trending/all/day?api_key=${apiKey}https://image.tmd
             <div class="tag">${type}</div>
           </div>
         </div>
+      `;
       
+      card.addEventListener('click', () => {
+        window.location.href = `movie-detail.html?id=${movie.id}`;
+      });
+      
+      moviesContainer.appendChild(card);
+    });
+  }
+
+  function formatDate(dateString) {
+    if (!dateString) return 'Unknown';
+    const date = new Date(dateString);
+    const options = { month: 'short', day: '2-digit', year: '2-digit' };
+    return date.toLocaleDateString('en-US', options);
+  }
+
+  searchInput.addEventListener('input', () => {
+    const query = searchInput.value.toLowerCase();
+    const filteredMovies = allMovies.filter(movie => {
+      const title = (movie.title || movie.name || '').toLowerCase();
+      return title.includes(query);
+    });
+    displayMovies(filteredMovies);
+  });
+
+  // Initialize the page
+  fetchMovies();
+</script>
+</body>
+</html>

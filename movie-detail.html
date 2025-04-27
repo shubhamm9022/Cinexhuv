@@ -250,11 +250,8 @@
     }
 
     .tag.hd { background: #4CAF50; }
-
     .tag.cam { background: #FF5722; }
-
     .tag.fhd { background: #2196F3; }
-
     .tag._4k { background: #9C27B0; }
   </style>
 </head>
@@ -281,7 +278,6 @@
       <h2 class="synopsis-title">Synopsis</h2>
       <p class="synopsis-text" id="synopsisText">Loading...</p>
     </div>
-
   </div>
 </div>
 
@@ -292,7 +288,8 @@
 </div>
 
 <script>
-const movieId = 550; // Example movie ID (Fight Club)
+const urlParams = new URLSearchParams(window.location.search);
+const movieId = urlParams.get('id'); // Get the movie ID from URL
 const apiKey = 'c4064977d8835c7a9e758c7ccf25d0fa';
 const apiUrl = `https://api.themoviedb.org/3/movie/${movieId}?api_key=${apiKey}&language=en-US`;
 const similarUrl = `https://api.themoviedb.org/3/movie/${movieId}/similar?api_key=${apiKey}&language=en-US&page=1`;
@@ -344,46 +341,29 @@ async function loadSimilarMovies() {
       : 'https://via.placeholder.com/180x270?text=No+Image';
     const title = movie.title || movie.name || 'No Title';
     const releaseDate = movie.release_date || movie.first_air_date || '';
-    const formattedDate = formatDate(releaseDate);
-    const rating = movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A';
-    const type = movie.media_type === 'movie' ? 'Movie' : 'Series';
-    const randomQuality = qualityOptions[Math.floor(Math.random() * qualityOptions.length)];
+    const qualityTag = qualityOptions[Math.floor(Math.random() * qualityOptions.length)];
 
-    const card = document.createElement('div');
-    card.className = 'movie-card';
-
-    card.innerHTML = `
-      <div class="poster-wrapper">
-        <img class="movie-poster" src="${posterPath}" alt="${title}">
-        <div class="rating-star">
-          <img src="${starImageUrl}" alt="star">
-          ${rating}
+    similarMovies.innerHTML += `
+      <div class="movie-card">
+        <div class="poster-wrapper">
+          <img src="${posterPath}" class="movie-poster" alt="${title}">
+          <div class="rating-star">
+            <img src="${starImageUrl}" alt="Star">  ${movie.vote_average.toFixed(1)}
+          </div>
         </div>
-      </div>
-      <div class="movie-info">
-        <div class="title">${title}</div>
-        <div class="tags">
-          <div class="tag">${formattedDate}</div>
-          <div class="tag ${randomQuality.class}">${randomQuality.text}</div>
-          <div class="tag">${type}</div>
+        <div class="movie-info">
+          <div class="title">${title}</div>
+          <div class="tags">
+            <div class="tag ${qualityTag.class}">${qualityTag.text}</div>
+          </div>
         </div>
       </div>
     `;
-
-    similarMovies.appendChild(card);
   });
-}
-
-function formatDate(dateString) {
-  if (!dateString) return 'Unknown';
-  const date = new Date(dateString);
-  const options = { month: 'short', day: '2-digit', year: '2-digit' };
-  return date.toLocaleDateString('en-US', options);
 }
 
 loadMovie();
 loadSimilarMovies();
 </script>
-
 </body>
 </html>

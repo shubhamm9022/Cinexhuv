@@ -7,7 +7,7 @@
 
   <!-- Poppins Font -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet"> <!-- for icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
 
   <style>
     body {
@@ -158,6 +158,7 @@
       max-width: 1100px;
       margin-left: auto;
       margin-right: auto;
+      width: 100%;
     }
 
     .similar-title {
@@ -168,20 +169,19 @@
 
     .similar-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
       gap: 20px;
-      justify-items: center;
+      width: 100%;
     }
 
-    /* Updated Card Styles */
+    /* Movie Card Styles */
     .movie-card {
       background: #1a1a1a;
       border-radius: 12px;
       overflow: hidden;
-      width: 100%;
-      max-width: 180px;
       transition: transform 0.3s;
       box-shadow: 0 4px 10px rgba(0,0,0,0.7);
+      width: 100%;
     }
 
     .movie-card:hover {
@@ -190,15 +190,18 @@
 
     .poster-wrapper {
       position: relative;
+      width: 100%;
+      padding-top: 150%; /* Aspect ratio for poster */
     }
 
     .movie-poster {
+      position: absolute;
+      top: 0;
+      left: 0;
       width: 100%;
-      height: 270px;
+      height: 100%;
       object-fit: cover;
       display: block;
-      border-top-left-radius: 12px;
-      border-top-right-radius: 12px;
     }
 
     .rating-star {
@@ -213,32 +216,32 @@
       align-items: center;
       gap: 3px;
       font-weight: 600;
-    }
-
-    .rating-star img {
-      width: 14px;
-      height: 14px;
+      z-index: 1;
     }
 
     .movie-info {
-      padding: 10px;
-      text-align: center;
+      padding: 12px;
     }
 
     .movie-info .title {
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 600;
-      margin-bottom: 8px;
-      overflow: hidden;
+      margin-bottom: 6px;
       white-space: nowrap;
+      overflow: hidden;
       text-overflow: ellipsis;
+    }
+
+    .movie-info .year {
+      font-size: 12px;
+      color: #aaa;
+      margin-bottom: 8px;
     }
 
     .movie-info .tags {
       display: flex;
       flex-wrap: wrap;
       gap: 4px;
-      justify-content: center;
     }
 
     .movie-info .tag {
@@ -262,7 +265,7 @@
 
 <div class="movie-container">
   <div class="poster">
-    <img id="poster" src="" alt="Poster">
+    <img id="poster" src="" alt="Poster" onerror="this.src='https://via.placeholder.com/220x330?text=No+Poster'">
   </div>
 
   <div class="movie-details">
@@ -289,81 +292,147 @@
 
 <script>
 const urlParams = new URLSearchParams(window.location.search);
-const movieId = urlParams.get('id'); // Get the movie ID from URL
+const movieId = urlParams.get('id');
 const apiKey = 'c4064977d8835c7a9e758c7ccf25d0fa';
 const apiUrl = `https://api.themoviedb.org/3/movie/${movieId}?api_key=${apiKey}&language=en-US`;
 const similarUrl = `https://api.themoviedb.org/3/movie/${movieId}/similar?api_key=${apiKey}&language=en-US&page=1`;
 
+// Listen for URL changes
+window.addEventListener('popstate', () => {
+  const newMovieId = new URLSearchParams(window.location.search).get('id');
+  if (newMovieId && newMovieId !== movieId) {
+    window.location.reload();
+  }
+});
+
 async function loadMovie() {
-  const res = await fetch(apiUrl);
-  const movie = await res.json();
+  try {
+    const res = await fetch(apiUrl);
+    if (!res.ok) throw new Error('Failed to fetch movie');
+    const movie = await res.json();
 
-  document.getElementById('banner').style.backgroundImage = `url(https://image.tmdb.org/t/p/original${movie.backdrop_path})`;
-  document.getElementById('poster').src = `https://image.tmdb.org/t/p/w500${movie.poster_path}`;
-  document.getElementById('title').textContent = movie.title;
+    // Set banner
+    const banner = document.getElementById('banner');
+    if (movie.backdrop_path) {
+      banner.style.backgroundImage = `url(https://image.tmdb.org/t/p/original${movie.backdrop_path})`;
+    } else {
+      banner.style.backgroundImage = 'linear-gradient(to right, #1a1a1a, #2a2a2a)';
+    }
 
-  const mainTags = document.getElementById('mainTags');
-  mainTags.innerHTML = `
-    <div class="tag movie-type">Movie</div>
-    <div class="tag"><i class="bi bi-calendar-event"></i> ${new Date(movie.release_date).getFullYear()}</div>
-    <div class="tag"><i class="bi bi-clock"></i> ${Math.floor(movie.runtime / 60)}h ${movie.runtime % 60}m</div>
-    <div class="rating-tag"><i class="bi bi-star-fill"></i> ${movie.vote_average.toFixed(1)}</div>
-  `;
+    // Set poster
+    const poster = document.getElementById('poster');
+    poster.src = movie.poster_path 
+      ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+      : 'https://via.placeholder.com/220x330?text=No+Poster';
+    poster.alt = `${movie.title} poster`;
 
-  const genreTags = document.getElementById('genreTags');
-  movie.genres.forEach(genre => {
-    const tag = document.createElement('div');
-    tag.className = 'tag';
-    tag.textContent = genre.name;
-    genreTags.appendChild(tag);
-  });
+    document.getElementById('title').textContent = movie.title;
 
-  document.getElementById('watchBtn').href = '#';
-  document.getElementById('synopsisText').textContent = movie.overview || "No synopsis available.";
+    // Main tags
+    const mainTags = document.getElementById('mainTags');
+    mainTags.innerHTML = `
+      <div class="tag movie-type">Movie</div>
+      <div class="tag"><i class="bi bi-calendar-event"></i> ${movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A'}</div>
+      <div class="tag"><i class="bi bi-clock"></i> ${movie.runtime ? `${Math.floor(movie.runtime / 60)}h ${movie.runtime % 60}m` : 'N/A'}</div>
+      <div class="rating-tag"><i class="bi bi-star-fill"></i> ${movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A'}</div>
+    `;
+
+    // Genre tags
+    const genreTags = document.getElementById('genreTags');
+    genreTags.innerHTML = '';
+    if (movie.genres && movie.genres.length) {
+      movie.genres.forEach(genre => {
+        const tag = document.createElement('div');
+        tag.className = 'tag';
+        tag.textContent = genre.name;
+        genreTags.appendChild(tag);
+      });
+    }
+
+    // Synopsis
+    document.getElementById('synopsisText').textContent = movie.overview || "No synopsis available.";
+
+    // Watch button
+    document.getElementById('watchBtn').href = `https://www.themoviedb.org/movie/${movie.id}`;
+    
+  } catch (error) {
+    console.error('Error loading movie:', error);
+    document.getElementById('title').textContent = 'Error loading movie';
+    document.getElementById('synopsisText').textContent = 'Failed to load movie details. Please try again later.';
+  }
 }
-
-const starImageUrl = 'https://i.postimg.cc/ZqbHmT4p/1000133487-removebg-preview-1.png';
-const qualityOptions = [
-  { text: 'HD', class: 'hd' },
-  { text: 'CAM', class: 'cam' },
-  { text: 'FHD', class: 'fhd' },
-  { text: '4K', class: '_4k' }
-];
 
 async function loadSimilarMovies() {
-  const res = await fetch(similarUrl);
-  const data = await res.json();
-  const similarMovies = document.getElementById('similarMovies');
+  try {
+    const res = await fetch(similarUrl);
+    if (!res.ok) throw new Error('Failed to fetch similar movies');
+    const data = await res.json();
+    const similarMovies = document.getElementById('similarMovies');
+    similarMovies.innerHTML = '';
 
-  data.results.slice(0, 6).forEach(movie => {
-    const posterPath = movie.poster_path 
-      ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` 
-      : 'https://via.placeholder.com/180x270?text=No+Image';
-    const title = movie.title || movie.name || 'No Title';
-    const releaseDate = movie.release_date || movie.first_air_date || '';
-    const qualityTag = qualityOptions[Math.floor(Math.random() * qualityOptions.length)];
+    if (!data.results || data.results.length === 0) {
+      similarMovies.innerHTML = '<p>No similar movies found</p>';
+      return;
+    }
 
-    similarMovies.innerHTML += `
-      <div class="movie-card">
-        <div class="poster-wrapper">
-          <img src="${posterPath}" class="movie-poster" alt="${title}">
-          <div class="rating-star">
-            <img src="${starImageUrl}" alt="Star">  ${movie.vote_average.toFixed(1)}
+    data.results.slice(0, 6).forEach(movie => {
+      const posterPath = movie.poster_path 
+        ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` 
+        : 'https://via.placeholder.com/150x225?text=No+Image';
+      
+      const title = movie.title || 'No Title';
+      const releaseYear = movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A';
+      const qualityTag = getRandomQualityTag();
+
+      const movieCard = document.createElement('div');
+      movieCard.className = 'movie-card';
+      movieCard.innerHTML = `
+        <a href="movie.html?id=${movie.id}" style="text-decoration: none; color: inherit;">
+          <div class="poster-wrapper">
+            <img src="${posterPath}" class="movie-poster" alt="${title}" loading="lazy">
+            <div class="rating-star">
+              <i class="bi bi-star-fill"></i> ${movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A'}
+            </div>
           </div>
-        </div>
-        <div class="movie-info">
-          <div class="title">${title}</div>
-          <div class="tags">
-            <div class="tag ${qualityTag.class}">${qualityTag.text}</div>
+          <div class="movie-info">
+            <div class="title">${title}</div>
+            <div class="year">${releaseYear}</div>
+            <div class="tags">
+              <div class="tag ${qualityTag.class}">${qualityTag.text}</div>
+            </div>
           </div>
-        </div>
-      </div>
-    `;
-  });
+        </a>
+      `;
+      similarMovies.appendChild(movieCard);
+    });
+
+  } catch (error) {
+    console.error('Error loading similar movies:', error);
+    document.getElementById('similarMovies').innerHTML = '<p>Failed to load similar movies</p>';
+  }
 }
 
-loadMovie();
-loadSimilarMovies();
+function getRandomQualityTag() {
+  const qualityOptions = [
+    { text: 'HD', class: 'hd' },
+    { text: 'CAM', class: 'cam' },
+    { text: 'FHD', class: 'fhd' },
+    { text: '4K', class: '_4k' }
+  ];
+  return qualityOptions[Math.floor(Math.random() * qualityOptions.length)];
+}
+
+// Load data when page loads
+document.addEventListener('DOMContentLoaded', () => {
+  if (!movieId) {
+    document.getElementById('title').textContent = 'No movie selected';
+    document.getElementById('synopsisText').textContent = 'Please go back and select a movie.';
+    return;
+  }
+  
+  loadMovie();
+  loadSimilarMovies();
+});
 </script>
 </body>
 </html>

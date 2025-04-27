@@ -316,43 +316,62 @@
     displayMovies(allMovies);
     loader.style.display = 'none';
   }
-  function displayMovies(movies) {
-    moviesContainer.innerHTML = '';
-    movies.forEach(movie => {
-      const posterPath = movie.poster_path ? https://image.tmdb.org/t/p/w500${movie.poster_path} : 'https://via.placeholder.com/180x270?text=No+Image';
-      const title = movie.title || movie.name || 'No Title';
-      const releaseDate = movie.release_date || movie.first_air_date || '';
-      const formattedDate = formatDate(releaseDate);
-      const type = movie.media_type === 'movie' ? 'Movie' : 'Series';
-      const rating = movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A';
-      const randomQuality = qualityOptions[Math.floor(Math.random() * qualityOptions.length)];
-      const card = document.createElement('a'); // Change this to an anchor tag
-      card.className = 'movie-card';
-      card.href = movie.html?id=${movie.id}; // Link to individual movie page
-      card.innerHTML = 
-        <div class="poster-wrapper">
-          <img class="movie-poster" src="${posterPath}" alt="${title}">
-          <div class="rating-star">
-            <img src="${starImageUrl}" alt="star">
-            ${rating}
-          </div>
-        </div>
-        <div class="movie-info">
-          <div class="title">${title}</div>
-          <div class="tags">
-            <div class="tag">${formattedDate}</div>
-            <div class="tag ${randomQuality.class}">${randomQuality.text}</div>
-            <div class="tag">${type}</div>
-          </div>
-        </div>
-      ;
-      moviesContainer.appendChild(card);
-      const poster = card.querySelector('.movie-poster');
-      poster.onload = () => {
-        poster.classList.add('loaded');
-      };
-    });
-  }
+     function displayMovies(movies) {
+     moviesContainer.innerHTML = '';
+     movies.forEach(movie => {
+       const posterPath = movie.poster_path ? https://image.tmdb.org/t/p/w500${movie.poster_path} : 'https://via.placeholder.com/180x270?text=No+Image';
+       const title = movie.title || movie.name || 'No Title';
+       const releaseDate = movie.release_date || movie.first_air_date || '';
+       const formattedDate = formatDate(releaseDate);
+       const type = movie.media_type === 'movie' ? 'Movie' : 'Series';
+       const rating = movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A';
+       const randomQuality = qualityOptions[Math.floor(Math.random() * qualityOptions.length)];
+       const card = document.createElement('div');
+       card.className = 'movie-card';
+       card.innerHTML = 
+         <div class="poster-wrapper">
+           <img class="movie-poster" src="${posterPath}" alt="${title}">
+           <div class="rating-star">
+             <img src="${starImageUrl}" alt="star">
+             ${rating}
+           </div>
+         </div>
+         <div class="movie-info">
+           <div class="title">${title}</div>
+           <div class="tags">
+             <div class="tag">${formattedDate}</div>
+             <div class="tag ${randomQuality.class}">${randomQuality.text}</div>
+             <div class="tag">${type}</div>
+           </div>
+         </div>
+       ;
+       card.addEventListener('click', () => {
+         window.location.href = movie-detail.html?id=${movie.id};
+       });
+       moviesContainer.appendChild(card);
+       const poster = card.querySelector('.movie-poster');
+       poster.onload = () => {
+         poster.classList.add('loaded');
+       };
+     });
+   }
+   https://image.tmdb.org/t/p/w500${movie.poster_path}
+         <div class="poster-wrapper">
+           <img class="movie-poster" src="${posterPath}" alt="${title}">
+           <div class="rating-star">
+             <img src="${starImageUrl}" alt="star">
+             ${rating}
+           </div>
+         </div>
+         <div class="movie-info">
+           <div class="title">${title}</div>
+           <div class="tags">
+             <div class="tag">${formattedDate}</div>
+             <div class="tag ${randomQuality.class}">${randomQuality.text}</div>
+             <div class="tag">${type}</div>
+           </div>
+         </div>
+       movie-detail.html?id=${movie.id}
   function formatDate(dateString) {
     if (!dateString) return 'Unknown';
     const date = new Date(dateString);

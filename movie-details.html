@@ -18,23 +18,28 @@
       padding: 0;
     }
 
-    .back-button {
-      position: fixed;
+    /* Back button */
+    .back-btn {
+      position: absolute;
       top: 20px;
       left: 20px;
-      background: #00ff7f;
-      color: black;
-      font-weight: 700;
-      padding: 10px 18px;
-      font-size: 14px;
-      border-radius: 10px;
-      text-decoration: none;
       z-index: 10;
-      transition: background 0.3s;
+      background: rgba(30, 30, 30, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s;
     }
 
-    .back-button:hover {
-      background: #00cc66;
+    .back-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateX(-2px);
     }
 
     .banner {
@@ -81,7 +86,6 @@
       transition: opacity 0.5s;
       opacity: 0;
     }
-
     .poster img.loaded { opacity: 1; }
 
     .movie-details {
@@ -119,7 +123,7 @@
     }
 
     .tag.movie-type {
-      background: #00ff7f;
+      background: linear-gradient(90deg, #ff4d4d, #f9cb28);
       color: #000;
       font-weight: 700;
     }
@@ -140,7 +144,7 @@
     }
 
     .btn {
-      background: #00ff7f;
+      background: linear-gradient(90deg, #ff4d4d, #f9cb28);
       border: none;
       color: black;
       font-weight: 700;
@@ -149,12 +153,13 @@
       border-radius: 10px;
       cursor: pointer;
       text-decoration: none;
-      transition: background 0.3s;
+      transition: all 0.3s;
       display: inline-block;
     }
 
     .btn:hover {
-      background: #00cc66;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
     }
 
     .synopsis {
@@ -174,6 +179,7 @@
       opacity: 0.85;
     }
 
+    /* Similar movies - matching index page exactly */
     .similar-section {
       margin-top: 50px;
       padding: 0 20px 30px;
@@ -295,15 +301,23 @@
       .movie-container {
         padding: 20px 15px;
       }
+      .back-btn {
+        top: 15px;
+        left: 15px;
+        width: 36px;
+        height: 36px;
+      }
     }
   </style>
 </head>
 
 <body>
 
-<a href="index.html" class="back-button"><i class="bi bi-arrow-left"></i> Back</a>
-
-<div class="banner" id="banner"></div>
+<div class="banner" id="banner">
+  <div class="back-btn" id="backBtn">
+    <i class="bi bi-arrow-left"></i>
+  </div>
+</div>
 
 <div class="movie-container">
   <div class="poster">
@@ -326,6 +340,7 @@
   </div>
 </div>
 
+<!-- Similar movies -->
 <div class="similar-section">
   <h2 class="similar-title">Similar Content</h2>
   <div class="similar-grid" id="similarMovies"></div>
@@ -334,9 +349,10 @@
 <script>
 const urlParams = new URLSearchParams(window.location.search);
 const mediaId = urlParams.get('id');
-const mediaType = urlParams.get('type') || 'movie'; 
+const mediaType = urlParams.get('type') || 'movie'; // Default to movie if not specified
 const apiKey = 'c4064977d8835c7a9e758c7ccf25d0fa';
 
+// Set API endpoints based on media type
 const detailsUrl = mediaType === 'tv'
   ? `https://api.themoviedb.org/3/tv/${mediaId}?api_key=${apiKey}&language=en-US`
   : `https://api.themoviedb.org/3/movie/${mediaId}?api_key=${apiKey}&language=en-US`;
@@ -345,6 +361,7 @@ const similarUrl = mediaType === 'tv'
   ? `https://api.themoviedb.org/3/tv/${mediaId}/similar?api_key=${apiKey}&language=en-US&page=1`
   : `https://api.themoviedb.org/3/movie/${mediaId}/similar?api_key=${apiKey}&language=en-US&page=1`;
 
+// Quality options matching index page
 const qualityOptions = [
   { text: 'HD', class: 'hd' },
   { text: 'CAM', class: 'cam' },
@@ -352,13 +369,20 @@ const qualityOptions = [
   { text: '4K', class: '_4k' }
 ];
 
+// Star image URL matching index page
 const starImageUrl = 'https://i.postimg.cc/ZqbHmT4p/1000133487-removebg-preview-1.png';
+
+// Back button functionality
+document.getElementById('backBtn').addEventListener('click', () => {
+  window.location.href = 'index.html';
+});
 
 async function loadMediaDetails() {
   try {
     const response = await fetch(detailsUrl);
     const media = await response.json();
 
+    // Set banner
     const banner = document.getElementById('banner');
     if (media.backdrop_path) {
       banner.style.backgroundImage = `url(https://image.tmdb.org/t/p/original${media.backdrop_path})`;
@@ -366,6 +390,7 @@ async function loadMediaDetails() {
       banner.style.backgroundImage = 'linear-gradient(to right, #1a1a1a, #2a2a2a)';
     }
 
+    // Set poster
     const poster = document.getElementById('poster');
     poster.src = media.poster_path 
       ? `https://image.tmdb.org/t/p/w500${media.poster_path}`
@@ -377,6 +402,7 @@ async function loadMediaDetails() {
 
     document.getElementById('title').textContent = mediaType === 'tv' ? media.name : media.title;
 
+    // Main tags
     const mainTags = document.getElementById('mainTags');
     mainTags.innerHTML = `
       <div class="tag movie-type">${mediaType === 'tv' ? 'TV Series' : 'Movie'}</div>
@@ -395,6 +421,7 @@ async function loadMediaDetails() {
       <div class="rating-tag"><i class="bi bi-star-fill"></i> ${media.vote_average ? media.vote_average.toFixed(1) : 'N/A'}</div>
     `;
 
+    // Genre tags
     const genreTags = document.getElementById('genreTags');
     genreTags.innerHTML = '';
     if (media.genres && media.genres.length) {
@@ -406,8 +433,10 @@ async function loadMediaDetails() {
       });
     }
 
+    // Synopsis
     document.getElementById('synopsisText').textContent = media.overview || "No synopsis available.";
 
+    // Watch button
     document.getElementById('watchBtn').href = mediaType === 'tv'
       ? `https://www.themoviedb.org/tv/${media.id}`
       : `https://www.themoviedb.org/movie/${media.id}`;
@@ -432,44 +461,60 @@ async function loadSimilarMedia() {
     }
 
     data.results.slice(0, 6).forEach(item => {
-      const card = document.createElement('div');
-      card.className = 'movie-card';
       const posterPath = item.poster_path 
         ? `https://image.tmdb.org/t/p/w500${item.poster_path}` 
         : 'https://via.placeholder.com/180x270?text=No+Image';
-      const title = item.title || item.name;
+      
+      const title = mediaType === 'tv' ? item.name : item.title;
+      const releaseDate = mediaType === 'tv' ? item.first_air_date : item.release_date;
+      const formattedDate = formatDate(releaseDate);
+      const type = mediaType === 'tv' ? 'Series' : 'Movie';
       const rating = item.vote_average ? item.vote_average.toFixed(1) : 'N/A';
-      const releaseDate = item.release_date || item.first_air_date;
-      const formattedDate = releaseDate ? new Date(releaseDate).getFullYear() : 'Unknown';
       const randomQuality = qualityOptions[Math.floor(Math.random() * qualityOptions.length)];
-
+      
+      const card = document.createElement('div');
+      card.className = 'movie-card';
       card.innerHTML = `
-        <a href="movie-detail.html?id=${item.id}&type=${mediaType}" style="text-decoration: none; color: inherit;">
-          <div class="poster-wrapper">
-            <img class="movie-poster" src="${posterPath}" alt="${title}" onload="this.classList.add('loaded')">
-            <div class="rating-star">
-              <img src="${starImageUrl}" alt="star">
-              ${rating}
-            </div>
+        <div class="poster-wrapper">
+          <img class="movie-poster" src="${posterPath}" alt="${title}" onload="this.classList.add('loaded')">
+          <div class="rating-star">
+            <img src="${starImageUrl}" alt="star">
+            ${rating}
           </div>
-          <div class="movie-info">
-            <div class="title">${title}</div>
-            <div class="tags">
-              <div class="tag">${formattedDate}</div>
-              <div class="tag ${randomQuality.class}">${randomQuality.text}</div>
-              <div class="tag">${mediaType === 'tv' ? 'Series' : 'Movie'}</div>
-            </div>
+        </div>
+        <div class="movie-info">
+          <div class="title">${title}</div>
+          <div class="tags">
+            <div class="tag">${formattedDate}</div>
+            <div class="tag ${randomQuality.class}">${randomQuality.text}</div>
+            <div class="tag">${type}</div>
           </div>
-        </a>
+        </div>
       `;
+      
+      // Add click event to redirect to the similar movie's details page
+      card.addEventListener('click', () => {
+        window.location.href = `movie-detail.html?id=${item.id}&type=${mediaType}`;
+      });
+      
       similarContainer.appendChild(card);
     });
 
   } catch (error) {
     console.error('Error loading similar media:', error);
+    similarContainer.innerHTML = '<p style="color: white; text-align: center; grid-column: 1/-1;">Failed to load similar content</p>';
   }
 }
 
+// Helper function to format date (matches index page)
+function formatDate(dateString) {
+  if (!dateString) return 'Unknown';
+  const date = new Date(dateString);
+  const options = { month: 'short', day: '2-digit', year: '2-digit' };
+  return date.toLocaleDateString('en-US', options);
+}
+
+// Load content when page loads
 document.addEventListener('DOMContentLoaded', () => {
   if (!mediaId) {
     document.getElementById('title').textContent = 'No content selected';
@@ -481,6 +526,5 @@ document.addEventListener('DOMContentLoaded', () => {
   loadSimilarMedia();
 });
 </script>
-
 </body>
 </html>

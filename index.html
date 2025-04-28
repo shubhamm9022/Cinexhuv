@@ -198,26 +198,41 @@
       transform: rotate(-45deg) translate(5px, -5px);
     }
     
-    /* BREADCRUMB */
+    /* CONTENT WRAPPER */
+    .content-wrapper {
+      margin-top: 72px;
+      padding: 20px;
+    }
+    
+    /* BREADCRUMB - IMPROVED FOR MOBILE */
     .breadcrumb {
       display: flex;
-      padding: 16px 20px;
-      margin: 90px 20px 20px;
-      text-gray-700 border border-gray-200 rounded-lg bg-gray-50 dark:bg-gray-800 dark:border-gray-700;
+      padding: 12px 15px;
       background: rgba(30, 30, 30, 0.8);
       border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 12px;
+      margin-bottom: 15px;
+      overflow-x: auto;
+      white-space: nowrap;
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    .breadcrumb::-webkit-scrollbar {
+      display: none;
     }
     
     .breadcrumb ol {
-      display: inline-flex;
+      display: flex;
       align-items: center;
       gap: 8px;
+      padding: 0;
+      margin: 0;
     }
     
     .breadcrumb li {
       display: inline-flex;
       align-items: center;
+      flex-shrink: 0;
     }
     
     .breadcrumb a {
@@ -238,42 +253,46 @@
       width: 14px;
       height: 14px;
       margin-right: 8px;
+      flex-shrink: 0;
     }
     
     .breadcrumb .separator {
       color: rgba(255, 255, 255, 0.4);
       margin: 0 8px;
+      flex-shrink: 0;
     }
     
     .breadcrumb .current {
       color: rgba(255, 255, 255, 0.5);
       font-weight: 500;
+      flex-shrink: 0;
     }
     
-    /* SECTION TITLE */
+    /* LATEST RELEASES SECTION - IMPROVED FOR MOBILE */
     .section-title {
       display: flex;
       align-items: center;
       gap: 10px;
-      margin: 0 20px 15px;
-      padding-top: 10px;
+      margin: 0 0 15px 0;
+      padding: 10px 15px;
+      background: rgba(30, 30, 30, 0.5);
+      border-radius: 8px;
     }
     
     .section-title i {
       color: #f9cb28;
-      font-size: 20px;
+      font-size: 18px;
     }
     
     .section-title h2 {
-      font-size: 18px;
+      font-size: 16px;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
     
     /* MOVIE CARDS */
-    main {
-      padding: 0 20px 20px;
+    .movies-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
       gap: 20px;
@@ -438,7 +457,7 @@
     /* RESPONSIVE */
     @media (max-width: 768px) {
       header {
-        padding: 0 20px;
+        padding: 0 15px;
       }
       
       nav {
@@ -470,14 +489,66 @@
       
       .search-box {
         right: -30px;
+        min-width: 260px;
       }
       
       .logo-text {
         display: none;
       }
       
-      main {
+      .content-wrapper {
+        padding: 15px;
+      }
+      
+      .breadcrumb {
+        padding: 10px 12px;
+      }
+      
+      .section-title {
+        padding: 8px 12px;
+      }
+      
+      .section-title i {
+        font-size: 16px;
+      }
+      
+      .section-title h2 {
+        font-size: 15px;
+      }
+      
+      .movies-grid {
         grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+      }
+      
+      .poster-wrapper {
+        height: 240px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .breadcrumb a, .breadcrumb .current {
+        font-size: 12px;
+      }
+      
+      .breadcrumb svg {
+        width: 12px;
+        height: 12px;
+        margin-right: 6px;
+      }
+      
+      .breadcrumb .separator {
+        margin: 0 6px;
+      }
+      
+      .section-title h2 {
+        font-size: 14px;
+      }
+      
+      .page-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 13px;
       }
     }
   </style>
@@ -510,57 +581,60 @@
 </header>
 <!-- Header End -->
 
-<!-- Breadcrumb -->
-<nav class="breadcrumb" aria-label="Breadcrumb">
-  <ol>
-    <li class="inline-flex items-center">
-      <a href="#">
-        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-          <path d="m19.707 9.293-2-2-7-7a1 1 0 0 0-1.414 0l-7 7-2 2a1 1 0 0 0 1.414 1.414L2 10.414V18a2 2 0 0 0 2 2h3a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h3a2 2 0 0 0 2-2v-7.586l.293.293a1 1 0 0 0 1.414-1.414Z"/>
-        </svg>
-        Home
-      </a>
-    </li>
-    <li>
-      <div class="separator">
-        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
-          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
-        </svg>
-      </div>
-      <a href="#">Movies</a>
-    </li>
-    <li aria-current="page">
-      <div class="separator">
-        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
-          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
-        </svg>
-      </div>
-      <span class="current">Latest Releases</span>
-    </li>
-  </ol>
-</nav>
+<!-- Content Wrapper -->
+<div class="content-wrapper">
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <ol>
+      <li class="inline-flex items-center">
+        <a href="#" class="breadcrumb-home">
+          <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+            <path d="m19.707 9.293-2-2-7-7a1 1 0 0 0-1.414 0l-7 7-2 2a1 1 0 0 0 1.414 1.414L2 10.414V18a2 2 0 0 0 2 2h3a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h3a2 2 0 0 0 2-2v-7.586l.293.293a1 1 0 0 0 1.414-1.414Z"/>
+          </svg>
+          Home
+        </a>
+      </li>
+      <li>
+        <div class="separator">
+          <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
+          </svg>
+        </div>
+        <a href="#" class="breadcrumb-movies">Movies</a>
+      </li>
+      <li aria-current="page">
+        <div class="separator">
+          <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
+          </svg>
+        </div>
+        <span class="current breadcrumb-latest">Latest Releases</span>
+      </li>
+    </ol>
+  </nav>
 
-<!-- Section Title -->
-<div class="section-title">
-  <i class="fas fa-bolt"></i>
-  <h2>Latest Releases</h2>
-</div>
+  <!-- Latest Releases Section -->
+  <div class="section-title">
+    <i class="fas fa-bolt"></i>
+    <h2>Latest Releases</h2>
+  </div>
 
-<!-- Loader -->
-<div class="loader" id="loader"></div>
+  <!-- Loader -->
+  <div class="loader" id="loader"></div>
 
-<!-- Movie Cards -->
-<main id="movies-container"></main>
+  <!-- Movie Cards Grid -->
+  <div class="movies-grid" id="movies-container"></div>
 
-<!-- Pagination -->
-<div class="pagination" id="pagination">
-  <button class="page-btn prev-btn disabled">
-    <i class="fas fa-chevron-left"></i>
-  </button>
-  <div class="page-numbers" id="page-numbers"></div>
-  <button class="page-btn next-btn">
-    <i class="fas fa-chevron-right"></i>
-  </button>
+  <!-- Pagination -->
+  <div class="pagination" id="pagination">
+    <button class="page-btn prev-btn disabled">
+      <i class="fas fa-chevron-left"></i>
+    </button>
+    <div class="page-numbers" id="page-numbers"></div>
+    <button class="page-btn next-btn">
+      <i class="fas fa-chevron-right"></i>
+    </button>
+  </div>
 </div>
 
 <script>
@@ -606,6 +680,38 @@
         hamburger.classList.remove('active');
       }
     });
+  });
+  
+  // Breadcrumb functionality
+  const breadcrumbHome = document.querySelector('.breadcrumb-home');
+  const breadcrumbMovies = document.querySelector('.breadcrumb-movies');
+  const breadcrumbLatest = document.querySelector('.breadcrumb-latest');
+  
+  breadcrumbHome.addEventListener('click', (e) => {
+    e.preventDefault();
+    // Update active nav link
+    navLinks.forEach(l => l.classList.remove('active'));
+    document.querySelector('nav a[href="#"]').classList.add('active');
+    // Here you would typically load the home content
+    console.log('Home breadcrumb clicked');
+  });
+  
+  breadcrumbMovies.addEventListener('click', (e) => {
+    e.preventDefault();
+    // Update active nav link
+    navLinks.forEach(l => l.classList.remove('active'));
+    document.querySelector('nav a:nth-child(2)').classList.add('active');
+    // Here you would typically load the movies content
+    console.log('Movies breadcrumb clicked');
+  });
+  
+  breadcrumbLatest.addEventListener('click', (e) => {
+    e.preventDefault();
+    // Update active nav link
+    navLinks.forEach(l => l.classList.remove('active'));
+    document.querySelector('nav a:nth-child(2)').classList.add('active');
+    // Here you would typically load the latest releases content
+    console.log('Latest Releases breadcrumb clicked');
   });
   
   // Movie fetching and pagination
